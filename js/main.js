@@ -1,29 +1,48 @@
 console.log("Welcome to JSON to Interface!");
 
 function jsonToInterface() {
+	document.getElementById("js-code").innerHTML = "";
+
 	const json = document.getElementById("json");
 	const nameInterface = document.getElementById("name-interface").value;
 	const obj = JSON.parse(json.value);
-	let keyValues = "";
 
+	const keyValues = constructInterface(obj);
+
+	createInterface(nameInterface, keyValues);
+}
+
+function createInterface(nameInterface, keyValues) {
+	let interface = `export interface ${nameInterface} {\n${keyValues}}\n\n`;
+
+	document
+		.getElementById("js-code")
+		.appendChild(document.createTextNode(interface));
+}
+
+function constructInterface(obj, pairOfValues = "") {
 	for (const key in obj) {
 		const value = obj[key];
 		const type = typeof value;
 
 		if (type === "string") {
-			keyValues += `  ${key}: string;\n`;
+			console.log(1);
+			pairOfValues += `  ${key}: string;\n`;
 		} else if (type === "number") {
-			keyValues += `  ${key}: number;\n`;
+			pairOfValues += `  ${key}: number;\n`;
+		} else if (type === "null") {
+			pairOfValues += `  ${key}: null;\n`;
 		} else if (type === "boolean") {
-			keyValues += `  ${key}: boolean;\n`;
+			pairOfValues += `  ${key}: boolean;\n`;
 		} else if (type === "object") {
-			keyValues += `  ${key}: object;\n`;
+			const nameInterface = key.charAt(0).toUpperCase() + key.slice(1);
+			pairOfValues += `  ${key}: ${nameInterface};\n`;
+			const newKeyValues = constructInterface(obj[key], "");
+			createInterface(nameInterface, newKeyValues);
 		}
 	}
 
-	let interface = `export interface ${nameInterface} {\n${keyValues}}`;
-
-	document.getElementById("js-code").innerHTML = interface;
+	return pairOfValues;
 }
 
 function jsonValidate() {
@@ -44,9 +63,8 @@ function jsonValidate() {
 function copyToClipboard() {
 	console.log("Copying to clipboard");
 	const jsCode = document.getElementById("js-code");
-	console.log(jsCode);
 	navigator.clipboard
-		.writeText(jsCode.textContent )
+		.writeText(jsCode.textContent)
 		.then(() => console.log("Text copied to clipboard"))
 		.catch((err) => console.log("Error in copying text: ", err));
 }
